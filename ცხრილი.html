@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ცხრილი • UCL Schedule</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:#0b0f14;color:#eef2ff}
+  a{color:#ffb300;text-decoration:none}
+  header{position:sticky;top:0;background:#0f131b;border-bottom:1px solid #202534}
+  .nav{max-width:1100px;margin:auto;display:flex;gap:16px;align-items:center;padding:12px 16px}
+  .logo{font-weight:800}
+  main{max-width:1100px;margin:20px auto;padding:0 16px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .btn{border:1px solid #2a3145;background:#1a2030;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .btn:hover{background:#232a3d}
+  .search{background:#0d1422;border:1px solid #242b3d;color:#fff;padding:10px;border-radius:8px;min-width:260px}
+  table{width:100%;border-collapse:collapse;background:linear-gradient(180deg,#141927,#111625);border:1px solid #1f2433;border-radius:12px;overflow:hidden}
+  th,td{padding:10px;border-bottom:1px solid #1f2433;text-align:left}
+  th{background:#151a27}
+  .mini{font-size:.85rem;color:#a9b1c7}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo">UNIT CYBER LEAGUE</div>
+    <a href="index.html">მთავარი</a>
+    <a href="დარეგისტრირებული ოჯახები.html">დარეგისტრირებული ოჯახები</a>
+  </div>
+</header>
+
+<main>
+  <h1 style="margin:0 0 8px">მატჩების ცხრილი</h1>
+  <div class="toolbar">
+    <input id="q" class="search" placeholder="ძებნა: ეტაპი, წყვილი…" />
+    <button class="btn" id="exportJson">Export JSON</button>
+    <button class="btn" id="exportCsv">Export CSV</button>
+  </div>
+  <div id="count" class="mini"></div>
+
+  <div style="overflow:auto;border-radius:12px">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th>ეთაპი</th>
+          <th>თარიღი</th>
+          <th>დრო</th>
+          <th>მატჩი</th>
+          <th>დამატების დრო</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  const LS_SCHEDULE = 'ucl_schedule';
+  const geMonths = ["იანვარი","თებერვალი","მარტი","აპრილი","მაისი","ივნისი","ივლისი","აგვისტო","სექტემბერი","ოქტომბერი","ნოემბერი","დეკემბერი"];
+
+  function getSchedule(){
+    try{ return JSON.parse(localStorage.getItem(LS_SCHEDULE)||"[]"); }
+    catch{ return []; }
+  }
+  function formatGe(dateStr,timeStr){
+    if(!dateStr) return "";
+    const d=new Date(`${dateStr}T${timeStr||"00:00"}`);
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${day} ${geMonths[d.getMonth()]} ${d.getFullYear()} წელი`;
+  }
+
+  function render(items){
+    const tb = document.querySelector('#tbl tbody');
+    const count = document.getElementById('count');
+    tb.innerHTML = '';
+    count.textContent = `ჩანაწერები: ${items.length}`;
+    items.slice().reverse().forEach(m=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(m.stage)}</td>
+        <td>${formatGe(m.date,m.time)}</td>
+        <td>${esc(m.time)}</td>
+        <td>${esc(m.match)}</td>
+        <td class="mini">${new Date(m.createdAt).toLocaleString()}</td>
+      `;
+      tb.appendChild(tr);
+    });
+  }
+
+  function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+  function toCsv(arr){
+    const headers = ['id','stage','date','time','match','createdAt'];
+    const rows = [headers.join(',')].concat(arr.map(o=>headers.map(h=>{
+      const v = (o[h]??'').toString().replace(/"/g,'""');
+      return `"${v}"`;
+    }).join(',')));
+    return rows.join('\n');
+  }
+
+  // Export
+  document.getElementById('exportJson').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(getSchedule(),null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ucl_schedule.json';
+    a.click();
+  });
+  document.getElementById('exportCsv').addEventListener('click', ()=>{
+    const blob = new Blob([toCsv(getSchedule())], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ucl_schedule.csv';
+    a.click();
+  });
+
+  // Search
+  document.getElementById('q').addEventListener('input', (e)=>{
+    const q = e.target.value.toLowerCase().trim();
+    const data = getSchedule().filter(m =>
+      [m.stage,m.match,m.date,m.time].join(' ').toLowerCase().includes(q)
+    );
+    render(data);
+  });
+
+  render(getSchedule());
+</script>
+</body>
+</html>

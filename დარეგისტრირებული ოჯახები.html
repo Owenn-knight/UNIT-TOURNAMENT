@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>დარეგისტრირებული ოჯახები • UCL</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:#0b0f14;color:#eef2ff}
+  a{color:#ffb300;text-decoration:none}
+  header{position:sticky;top:0;background:#0f131b;border-bottom:1px solid #202534}
+  .nav{max-width:1100px;margin:auto;display:flex;gap:16px;align-items:center;padding:12px 16px}
+  .logo{font-weight:800}
+  main{max-width:1100px;margin:20px auto;padding:0 16px}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .toolbar .grow{flex:1 1 260px}
+  .btn{border:1px solid #2a3145;background:#1a2030;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .btn:hover{background:#232a3d}
+  .btn.danger{border-color:#5b2530;background:#2a0e13;color:#ffd7de}
+  .btn.danger:hover{background:#3a131a}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .card{background:linear-gradient(180deg,#141927,#111625);border:1px solid #1f2433;border-radius:16px;padding:12px}
+  .card.rel{ position:relative; }
+  .card .card-actions{ position:absolute; right:8px; top:8px; display:flex; gap:6px; }
+
+  .icon-del{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:8px; cursor:pointer;
+    border:1px solid #3a2a2a; background:#1a0f0f; color:#ffd7de; font-size:14px;
+  }
+  .icon-del:hover{ background:#2a1717; }
+
+  .avatar{width:100%;height:160px;object-fit:cover;border-radius:12px;border:1px solid #25304a;background:#0b0f18}
+  .muted{color:#a9b1c7}
+  .mini{font-size:.85rem;color:#a9b1c7}
+  .search{background:#0d1422;border:1px solid #242b3d;color:#fff;padding:10px;border-radius:8px;min-width:260px}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo">UNIT CYBER LEAGUE</div>
+    <a href="index.html">მთავარი</a>
+    <a href="ცხრილი.html">ცხრილი</a>
+  </div>
+</header>
+
+<main>
+  <h1 style="margin:0 0 8px">დარეგისტრირებული ოჯახები</h1>
+
+  <div class="toolbar">
+    <input id="q" class="search grow" placeholder="ძებნა: სახელი, ლიდერი, Discord…" />
+    <button class="btn" id="exportJson">Export JSON</button>
+    <button class="btn" id="exportCsv">Export CSV</button>
+    <button class="btn danger" id="clearAll" hidden >🗑️ ყველა ოჯახის წაშლა</button>
+  </div>
+
+  <div id="count" class="mini"></div>
+  <div id="list" class="grid"></div>
+</main>
+
+<script>
+  const LS_FAMILIES = 'ucl_families';
+
+  function getFamilies(){
+    try{ return JSON.parse(localStorage.getItem(LS_FAMILIES)||"[]"); }
+    catch{ return []; }
+  }
+  function saveFamilies(arr){
+    localStorage.setItem(LS_FAMILIES, JSON.stringify(arr));
+  }
+
+  function deleteFamily(id){
+    const next = getFamilies().filter(f => f.id !== id);
+    saveFamilies(next);
+    rerenderWithCurrentFilter();
+  }
+  function clearAllFamilies(){
+    if(!confirm('დარწმუნებული ხარ? ეს წაშლის ყველა დარეგისტრირებულ ოჯახს ამ მოწყობილობაზე.')) return;
+    saveFamilies([]);
+    rerenderWithCurrentFilter();
+  }
+
+  function render(items){
+    const list = document.getElementById('list');
+    const count = document.getElementById('count');
+    list.innerHTML = '';
+    count.textContent = `ჯამი: ${items.length}`;
+    items.slice().reverse().forEach(f=>{
+      const div = document.createElement('div');
+      div.className = 'card rel';
+      div.innerHTML = `
+        <div class="card-actions">
+          <button class="icon-del del-family" title="წაშლა" data-id="${escAttr(f.id)}">🗑️</button>
+        </div>
+        ${f.photo ? `<img class="avatar" src="${f.photo}" alt="photo">` : `<div class="avatar" style="display:grid;place-items:center">No Photo</div>`}
+        <h3 style="margin:.6rem 0 .2rem">${esc(f.name)}</h3>
+        <div class="muted">Leader: ${esc(f.leader)} • ${esc(f.contact)}</div>
+        <p class="muted" style="margin:.5rem 0 0">${esc(f.bio||'')}</p>
+        <div class="mini" style="margin-top:.5rem">დამატებულია: ${new Date(f.createdAt).toLocaleString()}</div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function escAttr(s){return String(s).replace(/"/g,'&quot;')}
+
+  function toCsv(arr){
+    const headers = ['id','name','leader','contact','bio','createdAt'];
+    const rows = [headers.join(',')].concat(arr.map(o=>headers.map(h=>{
+      const v = (o[h]??'').toString().replace(/"/g,'""');
+      return `"${v}"`;
+    }).join(',')));
+    return rows.join('\n');
+  }
+
+  // Export buttons
+  document.getElementById('exportJson').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(getFamilies(),null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ucl_families.json';
+    a.click();
+  });
+  document.getElementById('exportCsv').addEventListener('click', ()=>{
+    const blob = new Blob([toCsv(getFamilies())], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ucl_families.csv';
+    a.click();
+  });
+
+  // „ყველას წაშლა“
+  document.getElementById('clearAll').addEventListener('click', clearAllFamilies);
+
+  // Search
+  const qInput = document.getElementById('q');
+  qInput.addEventListener('input', rerenderWithCurrentFilter);
+
+  function rerenderWithCurrentFilter(){
+    const q = qInput.value.toLowerCase().trim();
+    const data = getFamilies().filter(f =>
+      [f.name,f.leader,f.contact,f.bio].join(' ').toLowerCase().includes(q)
+    );
+    render(data);
+  }
+
+  // Delegated click for per-item delete
+  document.addEventListener('click', (e)=>{
+    const t = e.target;
+    if(t.classList.contains('del-family') && t.dataset.id){
+      // სურვილისამებრ: if(!confirm('წავშალო ეს ოჯახი?')) return;
+      deleteFamily(t.dataset.id);
+    }
+  });
+
+  // initial render
+  rerenderWithCurrentFilter();
+</script>
+</body>
+</html>

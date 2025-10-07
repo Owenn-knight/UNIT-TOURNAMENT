@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ტურნირის წესები</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <style>
+    :root{
+      --bg:#0a0a0a; --panel:#111111; --soft:#161616; --text:#f9f9f9; --muted:#c8c8c8;
+      --line:#1f1f1f; --brand:#ffd400; --brand2:#ffb300; --accent:#ffe866;
+      --danger:#ff4d4d; --ring:#272727;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      font-family:Arial, sans-serif;margin:0;color:var(--text);
+      background:
+        radial-gradient(1200px 500px at 80% -10%, rgba(255,212,0,.10), transparent 60%),
+        radial-gradient(1000px 400px at 0% 120%, rgba(255,212,0,.06), transparent 60%),
+        var(--bg);
+    }
+
+    header{
+      background:linear-gradient(180deg,#0d0d0d,#0a0a0a);
+      color:var(--text); padding:14px 12px; text-align:center;
+      border-bottom:1px solid var(--line); position:sticky; top:0; z-index:10;
+    }
+    .wrap{max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:center}
+    .titlebox{display:flex; flex-direction:column; align-items:center; gap:6px; margin:0 auto}
+    h1{margin:0; letter-spacing:.6px; font-weight:800}
+    header p{margin:.25rem 0 0; color:var(--accent); font-weight:600}
+
+    main{padding:18px 12px 28px}
+    .rules-gallery{display:flex; gap:18px; justify-content:center; margin:22px auto; flex-wrap:wrap; max-width:1200px}
+    .rules-gallery img{
+      width:340px; height:200px; object-fit:cover; border-radius:14px; cursor:pointer;
+      border:1px solid var(--line); background:var(--panel); outline:2px solid transparent;
+      transition:transform .25s, box-shadow .25s, outline-color .25s, border-color .25s;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    .rules-gallery img:hover{
+      transform:translateY(-2px) scale(1.02); border-color:#2a2a2a;
+      outline-color:rgba(255,212,0,.45); box-shadow:0 14px 40px rgba(0,0,0,.5);
+    }
+
+    .modal{display:none; position:fixed; z-index:1000; inset:0; background:rgba(0,0,0,0.78); justify-content:center; align-items:center; padding:16px}
+    .modal-content{
+      background:linear-gradient(180deg,#111111,#0e0e0e); color:var(--text);
+      width:min(960px,96vw); max-height:90vh; overflow-y:auto; padding:18px 18px 22px;
+      border-radius:16px; position:relative; line-height:1.9; border:1px solid var(--ring);
+      box-shadow:0 18px 60px rgba(0,0,0,.65), 0 0 0 3px rgba(255,212,0,.12) inset
+    }
+    .modal-content h2{margin:0 0 8px; font-size:1.3rem; font-weight:800; color:var(--brand)}
+    .modal-content h3{color:var(--brand2); margin:12px 0 8px; font-size:1.05rem}
+    .modal-content p{color:var(--muted)}
+    .modal-content ul{padding-left:18px; margin:8px 0 2px}
+    .modal-content li{padding-left:2px; margin:4px 0; border-left:3px solid transparent}
+    .modal-content li:hover{border-left-color:rgba(255,212,0,.35); background:rgba(255,212,0,.04); border-radius:6px; padding-left:8px; transition:.2s}
+    .close{position:absolute; top:10px; right:12px; cursor:pointer; display:grid; place-items:center; width:36px; height:36px; border-radius:10px; background:#131313; border:1px solid var(--ring)}
+    .close::after{content:"✕"; font-size:18px; color:var(--text)}
+    .close:hover{background:#191919; border-color:#2a2a2a}
+    .red{color:var(--danger); font-weight:800}
+
+    .modal-content::-webkit-scrollbar{width:10px}
+    .modal-content::-webkit-scrollbar-track{background:#0f0f0f; border-radius:10px}
+    .modal-content::-webkit-scrollbar-thumb{background:#2a2a2a; border-radius:10px; border:2px solid #111}
+    .modal-content::-webkit-scrollbar-thumb:hover{background:#3a3a3a}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="titlebox">
+      <h1>ტურნირის წესები</h1>
+      <p>დააჭირე ფოტოზე — გახსნის შემდეგ ნახავ შესაბამის წესებს</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="rules-gallery">
+    <img src="/images/brrn.png"    alt="ბრონებზე ბრძოლა"     class="rule-trigger" data-rule="brrn">
+    <img src="/images/revik.png"   alt="რევოლვერის ტურნირი" class="rule-trigger" data-rule="revolver">
+    <img src="/images/ზონები.png"  alt="ზონების ომი"        class="rule-trigger" data-rule="zones">
+    <img src="/images/პარკინგ.png" alt="პარკინგის კონტროლი" class="rule-trigger" data-rule="parking">
+    <img src="/images/ესცორტ.png"  alt="სატვირთოს ესკორტი"  class="rule-trigger" data-rule="escort">
+  </div>
+</main>
+
+<!-- Modal -->
+<div id="ruleModal" class="modal">
+  <div class="modal-content">
+    <span class="close" title="დახურვა"></span>
+    <div id="ruleText"><!-- rules injected here --></div>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById("ruleModal");
+  const ruleText = document.getElementById("ruleText");
+  const closeBtn = document.querySelector(".close");
+
+  const rules = {
+
+    brrn: `
+      <h2>🛡️ ბრონებზე ბრძოლა</h2>
+      <style>.red{color:#ff4d4d;font-weight:800} li{line-height:1.9}</style>
+
+      <h3>ზოგადი აღწერა</h3>
+      <p>
+        ბრონისჟილეტებზე ბრძოლა - ეს არის UCL ტურნირის ერთ ერთი ღონისძიება, სადაც მოთამაშეები ეცდებიან რაც შეიძლება მეტი ბრონის მოპოვებას.
+        აეროპორტის ტერიტორიაზე არის ორი ანგარი, ხოლო ამ ორ ანგარში არის სამ-სამი სატვირთო ავტომობილი, რომლებშიც ალაგია XX ცლი ბრონისჟილეტი. 
+        მიზანია რაც შეიძლება მეტი სატვირთო მოიპაროთ და მიიყვანოთ თქვენი ოჯახის ტერიტორიაზე (ოჯახის ტერიტორია განისაზღვრება თქვენი უშუალო ასაბნიაკით, იმის მიუხედავად რომ ხართ სხვა დემენშენში).
+      </p>
+
+      <h3>მთავარი წესები</h3>
+      <ul>
+        <li>1.1 სერვერის ყველა წესი მოქმედებს ღონისძიებაზე</li>
+        <li>1.2 დაშვებულია მხოლოდ PG, DM</li>
+        <li>1.3 აკრძალულია მესამე მხარის პროგრამული უზრუნველყოფის გამოყენება. | <span class="red">ოჯახის დისკვალიფიკაცია + ტურნირის შავი სია</span></li>
+        <li>1.4 აკრძალულია სახურავების დაკავება, სიმაღლიდან სროლა. | <span class="red">დისკვალიფიკაცია</span></li>
+        <li>1.5 აკრძალულია მონაწილეთა შეურაცხყოფა/პროვოკაცია | <span class="red">ოჯახის დისკვალიფიკაცია | BAN 3-30 დღე</span></li>
+        <li>1.6 აკრძალულია ტურნირის ზონის დატოვება შესვლის შემდგომ | <span class="red">ტექნიკური მარცხი / ორგანიზატორის შეხედულებისამებრ</span><br>
+          <em>გამონაკლისი: სატვირთო ავტომობილით გასვლა</em></li>
+        <li>1.7 აკრძალულია უიარაღოდ ყოფნა. | <span class="red">მოთამაშის დისკვალიფიკაცია</span></li>
+        <li>1.8 აკრძალულია სხვა ოჯახის სახელით მონაწილეობა | <span class="red">დისკვალიფიკაცია</span></li>
+        <li>1.9 აკრძალულია მოთამაშეების, მონაწილეების და ადმინისტრაციის შეურაცხყოფა | <span class="red">დისკვალიფიკაცია + ტურნირის შავი სია</span></li>
+        <li>1.10 აკრძალულია ანიმაციების გამოყენება</li>
+        <li>1.11 აკრძალულია შემოსასვლელი/გასასვლელი პუნქტების გადაკეტვა, კემპი</li>
+        <li>1.12 ანიმაცია (ქ)-ით სროლა აკრძალულია | <span class="red">დისკვალიფიკაცია (ორგანიზატორის შეხედულებისამებრ)</span></li>
+        <li>1.13 ადმინისტრაციის წევრების ხელის შეშლა, უპატივცემულო კომუნიკაცია აკრძალულია. | <span class="red">დისკვალიფიკაცია</span></li>
+        <li>1.14 ვიდეოს მოთხოვნის შემთხვევაში მონაწილემ უნდა მიაწოდოს იგი ადმინისტრაციას 12 საათის განმავლობაში.<br>
+          თუ მოთამაშე არ აგდებს ვიდეოფიქსაციას ითვლება, რომ მოთამაშეს არ აქვს ჩაწერილი ვიდეო.
+        </li>
+        <li>1.15 ტურნირის ორგანიზატორს შეუძლია ნებისმიერ დროს შეგამოწმოთ ჩეთზე, სოფტზე და ნებისმიერ დამხმარე პროგრამულ საშუალებებზე</li>
+        <li>1.16 სროლა მიმდინარეობს მხოლოდ წითელ ზონაში</li>
+        <li>1.17 ნარინჯისფერ ზონაში შესვლის შემდეგ გეძლევათ მაქსიმუმ 5 წუთი, რათა შეხვიდეთ წითელ ზონაში<br>
+          <em>შეხსენება: ნარინჯისფერ ზონაში სროლა აკრძალულია</em></li>
+        <li>1.18 აკრძალულია განზრახ სატვირთოს დაზიანება</li>
+        <li>1.19 აკრძალულია სროლის დროს გაცოცხლება, ჰილინგი, იარაღის გალუთვა<br>
+          <em>დაშვებულია მხოლოდ მოფარებულ და დაცულ ადგილას</em></li>
+        <li>1.20 აკრძალულია წითელ ზონაში მანქანით გადაადგილება<br>
+          <em>მანქანებს აჩერებთ ნარინჯისფერ ზონაში და ფეხით გადაადგილდებით წითელ ზონაში</em></li>
+        <li>1.21 აკრძალულია ზონიდან გასულ სატვირთოზე დევნა<br>
+          <em>თუ მოთამაშე გავიდა წითელი ზონიდან, იგი არის ხელშეუხებელი…</em></li>
+        <li>1.22 აკრძალულია ორი ოჯახის ალიანსი ნებისმიერ ასპექტში | <span class="red">ტურნირის შავი სია</span></li>
+        <li> 1.23 აკრძალულია იარაღის "დასვაპვა" | <span class="red">დისკვალიფიკაცია</span></li>
+      </ul>
+    `,
+    revolver: `
+      <h2>🔫 რევოლვერის ტურნირის წესები</h2>
+      <style>.red{color:#ff4d4d;font-weight:800} li{line-height:1.9}</style>
+
+      <h3>ზოგადი პირობები</h3>
+      <ul>
+        <li>
+          1.1 ტურნირში მონაწილეობას იღებენ მხოლოდ წინასწარ დარეგისტრირებული მოთამაშეები/ოჯახებიდან წარმომადგენლები.
+          <ul>
+            <li>შენიშვნა: თუ რეგისტრაციის რაოდენობა კენტია, რეგისტრირებულად არ ჩაითვლება ბოლო დარეგისტრურებული ოჯახი</li>
+            <li>შენიშვნა: ოჯახიდან უფლება აქვს მხოლოდ 1 გუნდს რომ დარეგისტრირდეს</li>
+          </ul>
+        </li>
+
+        <li>1.2 იარაღად ნებადართულია მხოლოდ რევოლვერი | სხვა იარაღის გამოყენება გამოიწვევს დაუყოვნებლივ <span class="red">დისკვალიფიკაციას</span>.</li>
+        <li>1.3 ყველა მატჩი ნახევარფინალამდე არის ერთმატჩიანი გამოთიშვის სისტემა, ხოლო ნახევარფინალი და ფინალი საუკეთესო 3-იდან.</li>
+        <li>
+          1.4 ყველა მატჩი ნახევარ ფინალამდე ტარდება ადმინისტრაციის მიერ არჩეული მაპით.
+          <ul>
+            <li>მითითება: შემდეგი მაპები ირჩევა ბანის დადების სისტემით, 5 ტერიდან ბანს ადებს ორივე მხარე ერთ-ერთ მაპს და ამის შემდეგ მონაცვლეობით ირჩევენ მაპებს…</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>მატჩის მიმდინარეობისას აკრძალულია</h3>
+      <ul>
+        <li>2.1 სხვა იარაღის გამოყენება გარდა რევოლვერისა | <span class="red">დისკვალიფიკაცია</span>.</li>
+        <li>2.2 ჯავშნის, მედიკამენტების ან შპრიცების გამოყენება | <span class="red">დისკვალიფიკაცია</span>.</li>
+        <li>2.3 ბაგების, ჩეთების ან მესამე პროგრამების გამოყენება | <span class="red">დისკვალიფიკაცია / ბანი 7-30 დღემდე</span>.</li>
+        <li>2.4 პოზიციის აღება სადაც არის ინტერიერი/ან ერთი შესასვლელი | <span class="red">დისკვალიფიკაცია</span>.</li>
+        <li>2.5 აკრძალულია Q პიკში ჩადგომა და გამოყენება | <span class="red">დისკვალიფიკაცია</span>.</li>
+        <li>2.6 აკრძალულია ტრიალი ერთ ადგილას, ან პირველ პერსონაჟში A/D ბაგის გამოყენება | <span class="red">დისკვალიფიკაცია</span>.</li>
+        <li>
+          2.7 შემტევმა მხარემ უნდა გაანეიტრალოს დამცველი მხარე ტურნირის დაწყებიდან 10 წუთში | <span class="red">დისკვალიფიკაცია</span>.
+          <ul><li>მინიშნება: მხარეები განისაზღვრება არჩევანი/არადნის პრინციპით.</li></ul>
+        </li>
+        <li>2.8 აკრძალულია ნებისმიერი შემაღლებული ადგილი | <span class="red">დისკვალიფიკაცია</span>.</li>
+        <li>
+          2.9 ყველა მონაწილეს უნდა ქონდეს ვიდეოფიქსაცია მთელი ტურნირის მსვლელობის | <span class="red">დისკვალიფიკაცია</span>.
+          <ul><li>720P მინიმუმ 48 საათი შენახვა.</li></ul>
+        </li>
+      </ul>
+    `,
+    zones: `
+      <h2>⚡ ზონების ომის წესები</h2>
+      <style>.red{color:#ff4d4d;font-weight:800} li{line-height:1.9}</style>
+      <h3>ზოგადი განმარტება</h3>
+      <p>ეეს არის ღონისძიება სადაც ოჯახები იბრძვიან წინასწარ არჩეულ ზონაში, ეს ზონა დაყოფილია სხვადასხვა ფერის კუბებად და თანდათან სხვადასხვა ზონა იკეტება, ამ ფერის ზონაში მყოფბმა ოჯახმა/ოჯახებმა დაუყონებლივ უნდა დატოვონ ზონა და გადავიდნენ მომდევნო ფერის ზონაში, გამარჯვებული ოჯახი იქნება ის ვინც გადარჩება საბოლოოდ.</p>
+      <h3>ღონისძიების მსვლელობა</h3>
+      <p>ღონისძიება ტარდება სხვა განზომილებაში, სადაც ტელეპორტაციას უკეთებს ადმინისტრაცია. ყველა ოჯახის წევრი ვალდებულია 30 წუთით ადრე უკვე სრულ მზადყოფნაში იყოს თავისი ოჯახის ასაბნიაკზე. ყველა ოჯახს ტელეპორტაციისას ეძლევა მანქანები რითიც შეუძლიათ ზონამდე მისვლა და შემდეგ ზონაში ფეხით შესვლა.
+
+თუ ღონისძიება იწყება XX:00-ზე ყველა ოჯახი ზონაში უნდა იყოს 5 წუთის ინტერვალში ანუ XX:05-ის ჩათვლით</p>
+      <h3>მთავარი წესები</h3>
+      <ol>
+  <li>ყველა ოჯახს უნდა ეცვას თავისი დრესკოდი (თუ დრესკოდი ემთხვევა სხვა ოჯახის დრესკოდს ან არის ისეთი რომ ბრონის შიგნიდან იმალება ადმინისტრატორს აქვს უფლება დრესკოდის ცვლილების) | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>ზონაში მანქანით შესვლა აკრძალულია | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>შემაღლებული ადგილები/სახურავების დაკავება აკრძალულია | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>მონაწილეობის უფლება აქვს მხოლოდ იმ ოჯახს რომელიც წინასწარაა რეგისტრირებული ტურნირზე | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>სხვა ოჯახში გადასვლა იმ მიზეზით რომ თქვენი ოჯახი არ არის რეგისტრირებული ივენთამდე 1 საათით ადრე აკრძალულია | <span style="color:red;">დისკვალიფიკაცია</span> + ბანი 3 დღიანი + მთლიანი ტურნირის შავი სია</li>
+  <li>აკრძალულია შემდეგი ტიპის იარაღები/ნივთების | <span style="color:red;">დისკვალიფიკაცია</span>
+    <ul>
+      <li>Heavy Sniper</li>
+      <li>Combat MG</li>
+      <li>Sniper</li>
+      <li>Musket</li>
+      <li>Gusenberg</li>
+      <li>Full Armor</li>
+    </ul>
+  </li>
+  <li>დაშვებულია მარტო 50%-იანი ბრონი | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია სროლის დროს დაჰილვა/აყენება | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>ზონის გარედან შიგნით სროლა აკრძალულია | <span style="color:red;">დისკვალიფიკაცია</span><br>შენიშვნა: ანალოგიურად შიგნიდან გარეთ სროლა აკრძალულია</li>
+  <li>ყველა ფრაქცია უნდა იყოს ღონისძიების დაწყებიდან 5 წუთში რომელიმე ზონაში | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>ოჯახებს ეკრძალებათ ალიანსი | <span style="color:red;">დისკვალიფიკაცია</span> + შავი სია ტურნირის</li>
+  <li>ერთ ადგილას არ შეიძლება გაჩერება 5 წუთზე დიდხანს | პირველ შემთხვევაზე გაფრთხილება ოჯახს ადმინისტრაციისგან, შემდეგში <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია ნებისმიერი ტიპის სოფტის/ბაგის გამოყენება | <span style="color:red;">დისკვალიფიკაცია</span> + ბანი</li>
+  <li>აკრძალულია მონაწილეთა შეურაცხყოფა/პროვოკაცია | ოჯახის <span style="color:red;">დისკვალიფიკაცია</span> | BAN 3-30 დღე</li>
+  <li>აკრძალულია ტურნირის ზონის დატოვება შესვლის შემდგომ | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>ზონა თუ დაიხურა ადმინისტრაციის გამოცადების შემდგომ ყველას აქვს 5 წუთი ამ ზონის დასატოვებლად და ამ ზონაში დაბრუნება აკრძალულია | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>მაქსიმალური ოჯახის წევრების რაოდენობა ღონისძიებაზე არის 30, მინიმალური 10 | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>ანიმაცია (ქ)ით სროლა აკრძალულია | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია უიარაღოდ ყოფნა | მოთამაშის <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>ადმინისტრაციის წევრების ხელის შეშლა, უპატივცემულო კომუნიკაცია აკრძალულია | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია ტელეპორტაციის ადგილიდან მანქანების დაძვრა ადმინისტრაციის ნებართვის გარეშე | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია ანიმაციების გამოყენება | <span style="color:red;">დისკვალიფიკაცია</span></li>
+  <li>ვიდეოს მოთხოვნის შემთხვევაში მონაწილემ უნდა მიაწოდოს იგი ადმინისტრაციას 12 საათის განმავლობაში. თუ მოთამაშე არ აგდებს ვიდეო ფიქსაციას ითვლება, რომ მოთამაშეს არ აქვს ჩაწერილი ვიდეო.</li>
+  <li>სროლა მიმდინარეობს მხოლოდ წითელ ზონაში</li>
+</ol>
+
+    `,
+    parking: `
+      <h2>🅿️ პარკინგის კონტროლი</h2>
+      <style>.red{color:#ff4d4d;font-weight:800} li{line-height:1.9}</style>
+      <p>ეს არის ღონისძიება სადაც, ყველა დარეგისტრირებულ ოჯახს 
+        აქვს უფლება მიიღოს მონაწილეობა ამ ღონისძიებაში. ღონისძიების მთავარი პრინციპია, რომ პარკინგი დაიკავოს ოჯახმა და გააკონტროლოს 15 წუთის მანძილზე, თუ ერთმა ოჯახმა დაიკავა პარკინგის ბოლო სართული ამ მომენტიდან დაიწყება ათვლა 15 წუთის იქამდე სანამ საბოლოო ოჯახის წევრი არ იქნება განეიტრალებული.</p>
+      <h3>ზოგადი წესები</h3>
+      <ul>
+        <ol>
+  <li>მონაწილეთა მინიმალური რაოდენობა არის 10 კაცი ხოლო მაქსიმალური რაოდენობა არის 30 კაცი. | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აღნიშნილ ივენთზე აკრძალულია ალაინსის დადება, ყველა ოჯახი არის წარმოდგენილი ინდივიდუალურად. | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია + ტურნირის შავი სია</span></li>
+  <li>ოჯახი რომელიც 15 წუთის განმავლობაში აიღებს კონტროლს პარკინგზე ის იქნება გამარჯვებული.<br>მინიშნება: სანამ საბოლოო წევრი არ იქნება განეიტრალებული იქამდე ოჯახის 15 წუთის ათვლა ისევ ძალაშია.</li>
+  <li>ყველა ოჯახი უნდა იყოს წითელ ზონაში შესული ღონისძიების დაწყებიდან 5 წუთში | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>მინიშნება: თუ დაიწყო XX:00-ზე ყველა უნდა შევიდეს წითელ ზონაში XX:05-ზე.</li>
+  <li>აკრძალულია პარკინგის შესასვლელების/კიბეების ბლოკირება მანქანით | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია ნებისმიერი ტრანსპორტით გადაადგილება წითელ/ლურჯ ზონებში.</li>
+  <li>სხვა ოჯახში გადასვლა იმ მიზეზით რომ თქვენი ოჯახი არ არის რეგისტრირებული ივენთამდე 1 საათით ადრე აკრძალულია | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია + ბანი 3 დღე + მთლიანი ტურნირის შავი სია</span></li>
+  <li>აუცილებელია ყველა ოჯახი წარმოდგენილი იყოს ადმინისტრაციის მიერ დადასტურებული დრესკოდით.</li>
+  <li>ოჯახის ორგანიზაციის შემადგენლობის მასობრივი წესების დარღვევის შემთხვევაში შესაძლებელია სანქციების დაწესება, მათ შორის ოჯახის დაშლა.</li>
+  <li>აკრძალულია ფრაქციის საწყობის გამოყენება ოჯახის საჭიროებებისთვის | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>ღონისძიება ტარდება წინასწარ განსაზღვრულ დროს.</li>
+  <li>ივენთზე მოქმედებს ყველა ზოგადი წესი<br>გამონაკლისი: DM, PG.</li>
+  <li>აკრძალულია სროლის დროს მოთამაშის გაცოცხლება/ჰილინგი | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>განმარტება: დაშვებულია მხოლოდ მოფარებულ და დაცულ ადგილას.</li>
+  <li>ზონაში შესვლის მომენტიდან გეკრძალებათ მისი დატოვება | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია ზონის შიგნიდან გარეთ სროლა და ანალოგიურად ზონის გარედან შიგნით | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია სროლის დროს მოთამაშის გალუთვა | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია ფრაქციის ნებისმიერი ფუნქციონალის გამოყენება | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია ნებისმიერი ტიპის შემაღლებული ადგილი, სადაც ანიმაციით ადიხართ | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>გამონაკლისი: პარკინგის სართულები.</li>
+  <li>ყველა მონაწილეს ხელში უნდა ჰქონდეს იარაღი | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია 100% ბრონისჟილეტის გამოყენება | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია საჰაერო ტრანსპორტის გამოყენება | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია შემდეგი ტიპის იარაღები | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>Heavy Sniper, Combat MG, Sniper, Heavy Shotgun, Musket, Gusenberg, Full Armor</li>
+  <li>აკრძალულია იარაღის "დასვაპვა" | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+</ol>
+
+      </ul>
+    `,
+    escort: `
+      <h2>🚚 სატვირთოს ესკორტი</h2>
+      <style>.red{color:#ff4d4d;font-weight:800} li{line-height:1.9}</style>
+      <h3>ზოგადი განმარტება</h3>
+      <p>ქულებით პირველ ადგილზე მყოფი ოჯახი ვალდებულია A პუნქტიდან B პუნქტში მიიყვანოს ტრანსპორტი…</p>
+      <h3>მთავარი წესები</h3>
+      <ul>
+        <ol>
+  <li>ყველა ოჯახს უნდა ეცვას თავისი ოჯახის დრესკოდი | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>მოთამაშეების  რაოდენობა რომელიც უძღვება კოლონას მინ - 10  მაქს - 50 | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>მოთამაშეების რაოდენობა რომლებიც უკეტავენ გზას კოლონას  მინ - 10 მაქს -25 ( თითო ოჯახიდან) | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>ივენთზე მოქმედებს ყველა სერვერის წესი<br>გამონაკლისი : PG/DM</li>
+  <li>აკრძალულია 100% ბრონები | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>სხვადასხვა ოჯახმა უნდა გადაკეტოს გზა სხვადასხვა ადგილას <br>მინიშნება: გადაკეტვებს შორის დაშორება უნდა იყოს მინიმუმ 250 მეტრი</li>
+  <li>აკრძალულია ალიანსით გადაკეტვა.</li>
+  <li>კოლონა ვალდებულია შეებრძოლოს თითოეულ ოჯახს ინდივიდუალურად<br>მაგალითად: მიდის კოლონა და გზად შეხვდა ერთი ოჯახი... (აგრძელებს გზას).</li>
+  <li>თუ ოჯახი რომელიც აცილებს კოლონას დამარცხდა... გამარჯვებული ოჯახი იწყებს გზას იმ ადგილიდან.</li>
+  <li>აკრძალულია მთაგორიან ადგილებზე ჩასაფრება | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>განმარტება: კოლონის მოსვლამდე და სროლის დაწყებამდე ყველა მოთამაშე უნდა განაწილდეს მანქანებთან.</li>
+  <li>აკრძალულია ისეთი სიმაღლის დაკავება , რომელზე ასასვლელადაც დაგჭირდებათ რაიმე ანიმაცია<br>მაგ: კიბე, კონტეინერზე აძრომა, სახლზე აძრომა და ა.შ | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>იარაღის აკრძალვები | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>აკრძალულია HEAVY SNIPER, Heavy Shotgun, Combat MG, Tazer, ბორკილები/თოკი.</li>
+  <li>აკრძალულია გადაკეტილი გზის ძალით გახსნა (მანქანით დაჯახება) | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია სროლის დროს მანქანით მოძრაობა | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია სატვირთოს გამიზნულად ჩაქრობა | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span></li>
+  <li>აკრძალულია სატვირთოს საბურავის დაზიანება | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>შენიშვნა: თუ მთავარი მანქანა მაინც დაზიანდა საბარგულში იდება შესაკეთებელი მასალები.</li>
+  <li>აკრძალულია სატვირთოს გადაადგილება სროლის დასრულებამდე | <span style="color:red; font-weight:bold;">დისკვალიფიკაცია</span><br>განმარტება: სატვირთო ჩერდება სროლის დაწყების მომენტშივე, ხოლო აგრძელებს მოძრაობას სროლის დასრულებისთანავე.</li>
+</ol>
+
+      </ul>
+    `
+  };
+
+  const closeModal = () => { modal.style.display = "none"; };
+  closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+  addEventListener("keydown", e => { if(e.key === "Escape" && modal.style.display === "flex") closeModal(); });
+
+  document.querySelectorAll(".rule-trigger").forEach(img => {
+    img.addEventListener("click", () => {
+      const type = img.getAttribute("data-rule");
+      ruleText.innerHTML = rules[type] || '<p>ამ ფოტოსთვის წესები არ არის დამატებული</p>';
+      modal.style.display = "flex";
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNIT CYBER LEAGUE — Tournament</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">
+      <span class="logoMark">U</span>
+      UNIT CYBER LEAGUE
+    </div>
+    <nav class="links">
+      <a href="#about"></a>
+      <a href="წესები.html">წესები</a>
+      <a href="ცხრილი.html">ცხრილი</a>
+      <a href="დარეგისტრირებული ოჯახები.html">დარეგისტრირებული ოჯახები</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="card">
+    <div class="eyebrow">Tournament</div>
+    <div id="heroTitle" class="title">UCL • მთავარი ტურნირი 2025</div>
+    <p id="heroLead" class="muted">
+      მოკლე აღწერა – რა ტიპის ტურნირია, ვინ მონაწილეობს და რა არის მთავარი მიზანი. (ეს ტექსტი სტატიკურია; შეცვალე HTML-ში.)
+    </p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">სწრაფი დეტალები</h3>
+    <p class="muted">📍 ლოკაცია: <span id="loc">Los Santos • RageMP</span></p>
+    <p class="muted">🗓️ თარიღი: <span id="dateInfo">10 მარტი 2025</span></p>
+    <p class="muted">🏆 პრიზი: <span id="prize">სასწორი / სერვერის ბენეფიტები</span></p>
+  </div>
+</div>
+
+<main>
+  <!-- ABOUT -->
+  <section id="about" class="card">
+    <h2>ტურნირის აღწერა</h2>
+    <div id="aboutText" class="muted">
+      დაწერე ზოგადი ინფორმაცია ტურნირზე: ფორმატი, მონაწილეთა რაოდენობა, ეტაპები (Group → Quarter → Semi → Final) და სხვა მნიშვნელოვანი დეტალები.
+    </div>
+  </section>
+
+  <!-- RULEსი -->
+ <!---<section id="rules" class="card">
+    <h2>ზოგადი წესები, რომლებიც ყველა ივენთზემოქმედებს</h2>
+    <div class="acc" id="rulesAcc">
+      <div class="acc-item">
+        <div class="acc-head">
+          <div class="acc-title">ზოგადი პირობები</div>
+          <div class="acc-icon">▶</div>
+        </div>
+        <div class="acc-body">
+          <ul id="rulesGeneral">
+            <li>წინასწარ დარეგისტრირებული გუნდები იღებენ მონაწილეობას.</li>
+            <li>მესამე მხარის პროგრამები <span class="red">აკრძალულია</span>.</li>
+            <li>დისკვალიფიკაცია შესაძლებელია წესების დარღვევისას <span class="red">| დისკვალიფიკაცია</span>.</li>
+          </ul>--->
+        </div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-head">
+          <div class="acc-title">იარაღები და აღჭურვილობა</div>
+          <div class="acc-icon">▶</div>
+        </div>
+        <div class="acc-body">
+          <ul id="rulesGuns">
+            <li>რევოლვერი – ნებადართული.</li>
+            <li>Heavy Sniper / Combat MG – <span class="red">აკრძალულია</span>.</li>
+            <li>100% ბრონი – <span class="red">აკრძალულია</span>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-head">
+          <div class="acc-title">ფეირ-პლეი / ქცევა</div>
+          <div class="acc-icon">▶</div>
+        </div>
+        <div class="acc-body">
+          <ul id="rulesFair">
+            <li>შეურაცხყოფა / პროვოკაცია – <span class="red">აკრძალულია</span>.</li>
+            <li>ადმინისტრაციის მითითებების იგნორი – <span class="red">დისკვალიფიკაცია</span>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section id="schedule" class="card">
+    <h2>მატჩების ცხრილი</h2>
+    <form id="scheduleForm" class="schedule-form" autocomplete="off">
+      <select id="stage" required>
+        <option value="">ეტაპი</option>
+        <option value="რევოლვერების ტურნირი">რევოლვერების ტურნირი</option>
+        <option value="ზონების ომი">ზონების ომი</option>
+        <option value="ბრონიჟილეტებისთვის ომი">ბრონიჟილეტებისთვის ომი</option>
+        <option value="პარკინგის კონტროლი">პარკინგის კონტროლი</option>
+      </select>
+      <input id="date" class="input" type="date" required />
+      <input id="time" class="input" type="time" required />
+      <input id="match" class="input" type="text" placeholder="Team A vs Team B" required />
+      <button class="btn" type="submit">➕ დამატება</button>
+    </form>
+
+    <div id="scheduleList" style="margin-top:12px"></div>
+
+    <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn danger" id="clearSchedule" hidden>🗑️ ყველა მატჩის წაშლა</button>
+    </div>
+
+    <p class="mini">შენახული მატჩები ავტომატურად გამოჩნდება „ცხრილი.html“-ზე.</p>
+  </section>
+
+  <!-- REGISTRATION -->
+  <section id="register" class="card">
+    <h2>ოჯახის რეგისტრაცია</h2>
+    <div class="grid-2">
+      <form id="regForm" style="display:grid;gap:10px" autocomplete="off">
+        <input id="famName" class="input" placeholder="ოჯახის სახელი" required />
+        <input id="leadName" class="input" placeholder="ლიდერის სახელი" required />
+        <input id="contact" class="input" placeholder="დაკავშირება (Discord)" required />
+        <textarea id="bio" class="input" placeholder="მოკლე ბიო" rows="4"></textarea>
+        <label class="mini">ოჯახის ფოტო (აირჩიე ფაილი, შეინახება ბრაუზერში)</label>
+        <input id="photo" class="input" type="file" accept="image/*" />
+        <button class="btn" type="submit">დამატება</button>
+      </form>
+      <div>
+        <h3 style="margin-top:0">დარეგისტრირებულები (ბოლო 5)</h3>
+        <div style="margin:6px 0 10px; display:flex; justify-content:flex-end">
+          <button class="btn danger" id="clearFamilies" hidden>🗑️ ყველა ოჯახის წაშლა</button>
+        </div>
+        <div id="famList" style="display:grid;gap:10px"></div>
+      </div>
+    </div>
+    <p class="mini">დამატების შემდეგ ავტომატურად გადაივლის „დარეგისტრირებული ოჯახები.html“-ზე.</p>
+  </section>
+
+  <!-- გალერეა -->
+  <section id="gallery" class="card">
+    <h2>გალერეა</h2>
+    <div class="gallery" id="gal">
+      <div class="thumb" hidden><img src="#" alt="#"></div>
+    </div>
+  </section>
+</main>
+
+<!-- IMAGE MODAL -->
+<div id="imgModal" class="modal" aria-hidden="true">
+  <div class="box">
+    <div class="close"><button id="closeImg">✖ Close</button></div>
+    <img id="modalImg" src="" alt="">
+  </div>
+</div>
+
+<footer>
+  © <span id="year"></span> UNIT CYBER LEAGUE • შექმნილია ტურნირის პრეზენტაციისთვის.
+</footer>
+
+<script src="script.js" defer></script>
+</body>
+</html>
